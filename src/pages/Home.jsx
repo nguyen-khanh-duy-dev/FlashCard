@@ -77,7 +77,7 @@ export default function Home() {
   })
 
   const today = todayWords(data.decks, data.cards)
-  const deckName = Object.fromEntries(data.decks.map((d) => [d.id, d.name]))
+  const todayLeft = today.words.filter((c) => !(c.interval_days >= 1)).length
 
   return (
     <>
@@ -87,31 +87,13 @@ export default function Home() {
             <div>
               <h2>🎯 Từ mới hôm nay</h2>
               <p className="muted">
-                {today.mastered >= today.goal
-                  ? `Đã đạt mục tiêu: nắm được ${today.mastered} từ hôm nay! 🎉`
-                  : `Đã nắm ${today.mastered}/${today.goal} từ — mục tiêu mỗi ngày ${today.goal} từ.`}
+                {todayLeft > 0
+                  ? `Cần học ${todayLeft} từ nữa hôm nay (đã nắm ${today.mastered}/${today.goal}).`
+                  : `Đã đạt mục tiêu: nắm được ${today.mastered} từ hôm nay! 🎉`}
               </p>
             </div>
-            {today.words.some((c) => !(c.interval_days >= 1)) && (
-              <Link to="/today" className="btn primary">Học từ hôm nay</Link>
-            )}
+            {todayLeft > 0 && <Link to="/today" className="btn primary">Bắt đầu học</Link>}
           </div>
-          <div className="progress">
-            <div style={{ width: `${Math.min(100, (today.mastered / today.goal) * 100)}%` }} />
-          </div>
-          <ul className="today-words">
-            {today.words.map((c) => {
-              const ok = c.interval_days >= 1
-              return (
-                <li key={c.id} className={ok ? 'ok' : ''}>
-                  <span className="mark">{ok ? '✓' : c.learned_at ? '↺' : '○'}</span>
-                  <b>{c.term}</b>
-                  <span className="muted">{c.definition}</span>
-                  <span className="badge">{deckName[c.deck_id]}</span>
-                </li>
-              )
-            })}
-          </ul>
         </section>
       )}
 
