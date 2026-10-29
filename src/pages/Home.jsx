@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createDeck, listDecks } from '../api'
-import { cardStatus, endOfToday } from '../srs'
+import { cardStatus, endOfToday, todayWords } from '../srs'
 import Loading from '../components/Loading'
 
 const DAY = 24 * 60 * 60 * 1000
@@ -76,8 +76,45 @@ export default function Home() {
     return s && s.new > 0 && s.new < s.total
   })
 
+  const today = todayWords(data.decks, data.cards)
+  const deckName = Object.fromEntries(data.decks.map((d) => [d.id, d.name]))
+
   return (
     <>
+      {today.words.length > 0 && (
+        <section className="panel">
+          <div className="hero">
+            <div>
+              <h2>🎯 Từ mới hôm nay</h2>
+              <p className="muted">
+                {today.mastered >= today.goal
+                  ? `Đã đạt mục tiêu: nắm được ${today.mastered} từ hôm nay! 🎉`
+                  : `Đã nắm ${today.mastered}/${today.goal} từ — mục tiêu mỗi ngày ${today.goal} từ.`}
+              </p>
+            </div>
+            {today.words.some((c) => !(c.interval_days >= 1)) && (
+              <Link to="/today" className="btn primary">Học từ hôm nay</Link>
+            )}
+          </div>
+          <div className="progress">
+            <div style={{ width: `${Math.min(100, (today.mastered / today.goal) * 100)}%` }} />
+          </div>
+          <ul className="today-words">
+            {today.words.map((c) => {
+              const ok = c.interval_days >= 1
+              return (
+                <li key={c.id} className={ok ? 'ok' : ''}>
+                  <span className="mark">{ok ? '✓' : c.learned_at ? '↺' : '○'}</span>
+                  <b>{c.term}</b>
+                  <span className="muted">{c.definition}</span>
+                  <span className="badge">{deckName[c.deck_id]}</span>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+
       <section className="panel">
         <div className="hero">
           <div>

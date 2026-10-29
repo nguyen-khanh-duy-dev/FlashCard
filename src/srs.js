@@ -46,6 +46,7 @@ export function schedule(card, grade, now = new Date()) {
     lapses,
     due_at: new Date(dueMs).toISOString(),
     last_reviewed_at: now.toISOString(),
+    learned_at: card.learned_at ?? now.toISOString(),
   }
 }
 
@@ -66,6 +67,30 @@ export function endOfToday(now = new Date()) {
   const d = new Date(now)
   d.setHours(23, 59, 59, 999)
   return d
+}
+
+export const DAILY_GOAL = 10
+
+// Từ của hôm nay: các từ đã học lần đầu hôm nay + từ mới bù cho đủ mục tiêu.
+// Từ mới lấy từ bộ đang học dở trước, sau đó theo tên bộ, trong bộ theo thứ tự thêm vào.
+// Một từ được tính là "đã nắm" khi lần chấm gần nhất không phải "Quên".
+export function todayWords(decks, cards, goal = DAILY_GOAL) {
+  const start = endOfToday()
+  start.setHours(0, 0, 0, 0)
+  const learned = cards.filter((c) => c.learned_at && new Date(c.learned_at) >= start)
+  const mastered = learned.filter((c) => c.interval_days >= 1).length
+
+  const started = new Set(cards.filter((c) => c.last_reviewed_at).map((c) => c.deck_id))
+  const deckOrder = [...decks]
+    .sort((a, b) => started.has(b.id) - started.has(a.id) || a.name.localeCompare(b.name, undefined, { numeric: true }))
+    .map((d) => d.id)
+  const rank = Object.fromEntries(deckOrder.map((id, i) => [id, i]))
+  const fresh = cards
+    .filter((c) => !c.last_reviewed_at)
+    .sort((a, b) => rank[a.deck_id] - rank[b.deck_id] || a.created_at.localeCompare(b.created_at))
+    .slice(0, Math.max(0, goal - learned.length))
+
+  return { words: [...learned, ...fresh], mastered, goal }
 }
 
 export function cardStatus(card, cutoff = endOfToday()) {

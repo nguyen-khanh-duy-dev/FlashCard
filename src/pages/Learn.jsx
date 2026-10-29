@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { dueCards, listCards, reviewCard } from '../api'
+import { dueCards, listCards, reviewCard, todayCards } from '../api'
 import { GRADES, intervalLabel } from '../srs'
 import { speak } from '../speech'
 import { shuffle } from '../utils'
@@ -9,7 +9,7 @@ import Loading from '../components/Loading'
 
 // Học ngắt quãng: hiện từ → tự nhớ nghĩa → lật → tự chấm mức độ nhớ.
 // Thẻ "Quên" được đưa lại vào cuối phiên, các thẻ khác hẹn ngày ôn tiếp theo.
-export default function Learn() {
+export default function Learn({ today = false }) {
   const { id } = useParams() // undefined = ôn tất cả các bộ
   const [queue, setQueue] = useState(null)
   const [revealed, setRevealed] = useState(false)
@@ -18,8 +18,8 @@ export default function Learn() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    dueCards(id).then(setQueue).catch((e) => setError(e.message))
-  }, [id])
+    (today ? todayCards() : dueCards(id)).then(setQueue).catch((e) => setError(e.message))
+  }, [id, today])
 
   const card = queue?.[0]
 
@@ -91,6 +91,11 @@ export default function Learn() {
             <>
               <h2>Hoàn thành phiên học!</h2>
               <p className="muted">Bạn đã ôn {done.count} lượt, quên {done.again} lần. Hẹn gặp lại ở lần ôn tiếp theo.</p>
+            </>
+          ) : today ? (
+            <>
+              <h2>Bạn đã nắm hết từ của hôm nay</h2>
+              <p className="muted">Ngày mai quay lại để học thêm từ mới nhé.</p>
             </>
           ) : (
             <>

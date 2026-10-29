@@ -113,6 +113,12 @@ label input { margin-top: 4px; }
 }
 .today-item:hover { border-color: var(--primary); }
 .today-item .muted { margin: 0; font-size: 0.9rem; white-space: nowrap; }
+.today-words { list-style: none; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 6px 16px; }
+.today-words li { display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 4px 0; }
+.today-words li .muted { flex: 1; margin: 0; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.today-words .mark { width: 1em; color: var(--muted); }
+.today-words li.ok .mark { color: var(--green); }
+.today-words li.ok b { color: var(--green); }
 .upcoming { align-items: center; margin-top: 14px; }
 .upcoming .muted { margin: 0; font-size: 0.9rem; }
 .create { margin-bottom: 16px; flex-wrap: nowrap; }

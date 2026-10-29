@@ -25,6 +25,10 @@ create table if not exists public.cards (
   created_at       timestamptz not null default now()
 );
 
+-- Thời điểm học thẻ lần đầu (để đếm số từ mới học mỗi ngày)
+alter table public.cards add column if not exists learned_at timestamptz;
+update public.cards set learned_at = last_reviewed_at where learned_at is null and last_reviewed_at is not null;
+
 create index if not exists cards_deck_idx on public.cards (deck_id);
 create index if not exists cards_due_idx  on public.cards (user_id, due_at);
 

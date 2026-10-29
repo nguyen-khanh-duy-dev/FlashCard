@@ -48,6 +48,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/review" element={<Learn />} />
+          <Route path="/today" element={<Learn today />} />
           <Route path="/deck/:id" element={<Deck />} />
           <Route path="/deck/:id/flashcards" element={<Flashcards />} />
           <Route path="/deck/:id/learn" element={<Learn />} />
