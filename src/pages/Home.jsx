@@ -1,8 +1,31 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createDeck, listDecks } from '../api'
-import { cardStatus } from '../srs'
+import { cardStatus, endOfToday } from '../srs'
 import Loading from '../components/Loading'
+
+const DAY = 24 * 60 * 60 * 1000
+const UPCOMING_DAYS = 7
+
+function dayLabel(days) {
+  if (days === 1) return 'Ngày mai'
+  const d = new Date(Date.now() + days * DAY)
+  return `${d.getDate()}/${d.getMonth() + 1}`
+}
+
+function TodayGroup({ title, decks, count }) {
+  return (
+    <div className="today-group">
+      <h4>{title}</h4>
+      {decks.map((d) => (
+        <Link to={`/deck/${d.id}/learn`} key={d.id} className="today-item">
+          <span>{d.name}</span>
+          <span className="muted">{count(d)} →</span>
+        </Link>
+      ))}
+    </div>
+  )
+}
 
 export default function Home() {
   const [data, setData] = useState(null)
@@ -28,29 +51,65 @@ export default function Home() {
   if (error) return <p className="msg">{error}</p>
   if (!data) return <Loading />
 
-  const now = new Date()
+  const cutoff = endOfToday()
   const stats = {}
+  const upcoming = {} // số ngày kể từ hôm nay → số thẻ đến hạn
   let totalDue = 0
   for (const c of data.cards) {
     const s = (stats[c.deck_id] ??= { total: 0, new: 0, due: 0, mastered: 0 })
-    const st = cardStatus(c, now)
+    const st = cardStatus(c, cutoff)
     s.total++
     if (st === 'new') s.new++
     if (st === 'due') s.due++
     if (st === 'mastered') s.mastered++
     if (st === 'new' || st === 'due') totalDue++
+    if (st === 'learning' || st === 'mastered') {
+      const days = Math.ceil((new Date(c.due_at) - cutoff) / DAY)
+      if (days <= UPCOMING_DAYS) upcoming[days] = (upcoming[days] ?? 0) + 1
+    }
   }
+
+  // Ôn lại: bộ có thẻ đến hạn. Học mới: bộ đã bắt đầu học nhưng còn thẻ mới.
+  const toReview = data.decks.filter((d) => stats[d.id]?.due > 0)
+  const toLearn = data.decks.filter((d) => {
+    const s = stats[d.id]
+    return s && s.new > 0 && s.new < s.total
+  })
 
   return (
     <>
-      <section className="panel hero">
-        <div>
-          <h2>Hôm nay</h2>
-          <p className="muted">
-            {totalDue > 0 ? `Bạn có ${totalDue} thẻ cần học/ôn.` : 'Không có thẻ nào cần ôn. Tuyệt vời! 🎉'}
-          </p>
+      <section className="panel">
+        <div className="hero">
+          <div>
+            <h2>Hôm nay</h2>
+            <p className="muted">
+              {totalDue > 0 ? `Bạn có ${totalDue} thẻ cần học/ôn.` : 'Không có thẻ nào cần ôn. Tuyệt vời! 🎉'}
+            </p>
+          </div>
+          {totalDue > 0 && <Link to="/review" className="btn primary">Bắt đầu ôn tập</Link>}
         </div>
-        {totalDue > 0 && <Link to="/review" className="btn primary">Bắt đầu ôn tập</Link>}
+
+        {(toReview.length > 0 || toLearn.length > 0) && (
+          <div className="today-plan">
+            {toReview.length > 0 && (
+              <TodayGroup title="🔁 Ôn lại" decks={toReview} count={(d) => `${stats[d.id].due} thẻ đến hạn`} />
+            )}
+            {toLearn.length > 0 && (
+              <TodayGroup title="✨ Học tiếp" decks={toLearn} count={(d) => `còn ${stats[d.id].new} từ mới`} />
+            )}
+          </div>
+        )}
+
+        {Object.keys(upcoming).length > 0 && (
+          <div className="badges upcoming">
+            <span className="muted">Sắp tới:</span>
+            {Object.entries(upcoming)
+              .sort(([a], [b]) => a - b)
+              .map(([days, n]) => (
+                <span key={days} className="badge learning">{dayLabel(Number(days))}: {n} thẻ</span>
+              ))}
+          </div>
+        )}
       </section>
 
       <form className="row create" onSubmit={onCreate}>

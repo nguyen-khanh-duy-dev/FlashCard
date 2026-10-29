@@ -61,9 +61,16 @@ export function formatDays(d) {
   return `${(d / 365).toFixed(1)} năm`
 }
 
-export function cardStatus(card, now = new Date()) {
+// Thẻ hẹn ôn vào bất kỳ lúc nào trong hôm nay đều tính là "cần ôn hôm nay"
+export function endOfToday(now = new Date()) {
+  const d = new Date(now)
+  d.setHours(23, 59, 59, 999)
+  return d
+}
+
+export function cardStatus(card, cutoff = endOfToday()) {
   if (!card.last_reviewed_at) return 'new'
-  if (new Date(card.due_at) <= now) return 'due'
+  if (new Date(card.due_at) <= cutoff) return 'due'
   if (card.interval_days >= 21) return 'mastered'
   return 'learning'
 }

@@ -105,6 +105,16 @@ label input { margin-top: 4px; }
   padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow);
 }
 .hero { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.today-plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.today-group h4 { margin: 0 0 8px; }
+.today-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 8px 12px; margin-bottom: 6px; border: 1.5px solid var(--border); border-radius: 10px;
+}
+.today-item:hover { border-color: var(--primary); }
+.today-item .muted { margin: 0; font-size: 0.9rem; white-space: nowrap; }
+.upcoming { align-items: center; margin-top: 14px; }
+.upcoming .muted { margin: 0; font-size: 0.9rem; }
 .create { margin-bottom: 16px; flex-wrap: nowrap; }
 .deck-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .search { max-width: 220px; padding: 6px 10px; }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { addCards, deleteCard, deleteDeck, getDeck, listCards, updateCard, updateDeck } from '../api'
-import { cardStatus, STATUS_LABEL } from '../srs'
+import { cardStatus, endOfToday, STATUS_LABEL } from '../srs'
 import SpeakButton from '../components/SpeakButton'
 import Loading from '../components/Loading'
 
@@ -116,7 +116,7 @@ export default function Deck() {
   if (error && !deck) return <p className="msg">{error}</p>
   if (!deck) return <Loading />
 
-  const now = new Date()
+  const now = endOfToday()
   const counts = { new: 0, due: 0, learning: 0, mastered: 0 }
   cards.forEach((c) => counts[cardStatus(c, now)]++)
   const toStudy = counts.new + counts.due

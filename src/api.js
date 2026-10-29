@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { schedule } from './srs'
+import { endOfToday, schedule } from './srs'
 
 function check({ data, error }) {
   if (error) throw error
@@ -52,7 +52,7 @@ export async function deleteCard(id) {
 
 // deckId = null → tất cả các bộ
 export async function dueCards(deckId) {
-  let q = supabase.from('cards').select('*').lte('due_at', new Date().toISOString()).order('due_at')
+  let q = supabase.from('cards').select('*').lte('due_at', endOfToday().toISOString()).order('due_at')
   if (deckId) q = q.eq('deck_id', deckId)
   return check(await q)
 }
